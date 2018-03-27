@@ -9,6 +9,20 @@
 #import "WKWebView+ScrollViewDelegate.h"
 #import <objc/runtime.h>
 
+@interface WeakObjectContainer : NSObject
+@property (nonatomic, readonly, weak) id object;
+@end
+
+@implementation WeakObjectContainer
+- (instancetype)initWithObject:(id)object
+{
+    if (!(self = [super init]))
+        return nil;
+    _object = object;
+    return self;
+}
+@end
+
 @implementation WKWebView (ScrollViewDelegate)
 
 +(void)load {
@@ -75,11 +89,11 @@
 }
 
 - (NSObject *)scrollViewDelegate {
-    return objc_getAssociatedObject(self, @selector(scrollViewDelegate));
+    return [objc_getAssociatedObject(self, @selector(scrollViewDelegate)) object];
 }
 
 - (void)setScrollViewDelegate:(NSObject *)delegate {
-    objc_setAssociatedObject(self, @selector(scrollViewDelegate), delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self, @selector(scrollViewDelegate), [[WeakObjectContainer alloc] initWithObject:delegate], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 - (void)hook_scrollViewDidScroll:(UIScrollView *)scrollView {
